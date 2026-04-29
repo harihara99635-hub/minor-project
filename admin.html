@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Look Book Admin | Intelligent Command Center</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Override for a full-screen standalone admin feel */
+        @media (min-width: 1024px) {
+            #app {
+                max-width: 900px; /* Wider workspace for admin */
+            }
+            .admin-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <header>
+            <div class="header-left">
+                <h1>Admin Portal</h1>
+            </div>
+            <div class="header-right">
+                <button id="logout-btn" title="Sign Out"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
+        </header>
+
+        <main id="content-scroll" style="padding-bottom: 2rem;">
+            <section id="admin-view" class="view active">
+                <div class="view-header">
+                    <h2>Command Center</h2>
+                    <p>Inventory Intelligence & Management</p>
+                </div>
+                
+                <div class="admin-dashboard-stats">
+                    <div class="stat-card">
+                        <span class="stat-label">Total Styles</span>
+                        <span class="stat-value" id="total-styles-count">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">User Interactions</span>
+                        <span class="stat-value" id="total-ratings-count">0</span>
+                    </div>
+                </div>
+
+                <div class="admin-controls">
+                    <button class="btn-action" id="add-item-btn"><i class="fas fa-plus"></i> Add New Masterpiece</button>
+                </div>
+
+                <div id="admin-inventory" class="attire-grid admin-grid">
+                    <!-- Inventory injected here -->
+                </div>
+
+                <!-- User Intelligence Section -->
+                <div class="view-header" style="margin-top: 5rem;">
+                    <h2>User Intelligence</h2>
+                    <p>Credentials Vault & Access Audit</p>
+                </div>
+                <div id="user-management-list" class="admin-data-table">
+                    <!-- Users injected here -->
+                </div>
+
+                <!-- Ratings Analysis Section -->
+                <div class="view-header" style="margin-top: 5rem;">
+                    <h2>Ratings Analysis</h2>
+                    <p>Detailed User Sentiment Audit</p>
+                </div>
+                <div id="ratings-audit-list" class="admin-data-table">
+                    <!-- Ratings injected here -->
+                </div>
+            </section>
+        </main>
+
+        <!-- Add Item Modal -->
+        <div id="add-item-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Curate Style</h3>
+                    <button class="close-modal"><i class="fas fa-times"></i></button>
+                </div>
+                <form id="add-item-form">
+                    <div class="modal-body">
+                        <div class="input-group-alt">
+                            <label>Style Name</label>
+                            <input type="text" name="name" required placeholder="e.g. Midnight Suit">
+                        </div>
+                        <div class="input-group-alt">
+                            <label>Brand</label>
+                            <input type="text" name="brand" required placeholder="e.g. Celestial Tailors">
+                        </div>
+                        <div class="input-group-alt">
+                            <label>Image URL</label>
+                            <input type="url" name="image" required placeholder="Paste image link">
+                        </div>
+                        
+                        <div class="input-row">
+                            <div class="input-group-alt">
+                                <label>Gender</label>
+                                <select name="gender">
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                </select>
+                            </div>
+                            <div class="input-group-alt">
+                                <label>Occasion</label>
+                                <select name="occasion">
+                                    <option value="wedding">Wedding</option>
+                                    <option value="casual">Casual</option>
+                                    <option value="interview">Interview</option>
+                                    <option value="party">Party</option>
+                                </select>
+                            </div>
+                            <div class="input-group-alt">
+                                <label>Season</label>
+                                <select name="season">
+                                    <option value="summer">Summer</option>
+                                    <option value="winter">Winter</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="input-row">
+                            <div class="input-group-alt">
+                                <label>Recommended Shirt (Image URL)</label>
+                                <input type="url" name="recommendedShirt" placeholder="Paste shirt image link">
+                            </div>
+                            <div class="input-group-alt">
+                                <label>Recommended Pant (Image URL)</label>
+                                <input type="url" name="recommendedPant" placeholder="Paste pant image link">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn-primary">Add to Collection</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="db.js"></script>
+    <script>
+        // Admin-Specific Logic
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check auth (primitive for now, just check if we logged in as admin recently)
+            const isAuth = sessionStorage.getItem('admin_authenticated');
+            if (!isAuth) {
+                // If not authenticated, send to login
+                window.location.href = 'index.html';
+                return;
+            }
+
+            const attireData = VaultDB.getAttires();
+            const inventoryList = document.getElementById('admin-inventory');
+
+            function render() {
+                const data = VaultDB.getAttires();
+                const raw = VaultDB.raw;
+
+                // Stats
+                document.getElementById('total-styles-count').innerText = data.length;
+                document.getElementById('total-ratings-count').innerText = raw.ratings.length;
+
+                // Inventory
+                inventoryList.innerHTML = data.map(i => `
+                    <div class="attire-card admin-card">
+                        <div class="card-image">
+                            <img src="${i.image}" loading="lazy">
+                            <div class="card-overlay">
+                                <button class="btn-delete" onclick="deleteItem('${i.id}')"><i class="fas fa-trash-alt"></i></button>
+                            </div>
+                            <div class="rating-badge"><i class="fas fa-star"></i> ${VaultDB.getAverageRating(i.id)}</div>
+                        </div>
+                        <div class="card-info">
+                            <h4>${i.name}</h4>
+                            <p>${i.brand}</p>
+                            <div class="card-tags"><span class="tag">${i.occasion}</span><span class="tag">${i.season}</span></div>
+                        </div>
+                    </div>
+                `).join('');
+
+                // Users
+                document.getElementById('user-management-list').innerHTML = `
+                    <div class="data-header"><span>Username</span><span>Encrypted Key</span></div>
+                    ${raw.users.map(u => `<div class="data-row"><span class="data-label">${u.username}</span><span class="data-value">${u.password}</span></div>`).join('')}
+                `;
+
+                // Ratings
+                document.getElementById('ratings-audit-list').innerHTML = `
+                    <div class="data-header"><span>Style</span><span>Rating</span></div>
+                    ${raw.ratings.map(r => {
+                        const item = data.find(a => a.id === r.attireId);
+                        return `<div class="data-row"><span class="data-label">${item ? item.name : 'Unknown'}</span><span class="data-value">${r.rating}★ (${r.username})</span></div>`;
+                    }).join('')}
+                `;
+            }
+
+            window.deleteItem = (id) => {
+                if (confirm("Delete this style?")) {
+                    VaultDB.deleteAttire(id);
+                    render();
+                }
+            };
+
+            document.getElementById('add-item-btn').onclick = () => document.getElementById('add-item-modal').classList.add('active');
+            document.querySelectorAll('.close-modal').forEach(b => b.onclick = () => b.closest('.modal').classList.remove('active'));
+
+            document.getElementById('add-item-form').onsubmit = (e) => {
+                e.preventDefault();
+                const fd = new FormData(e.target);
+                VaultDB.addAttire({
+                    id: Date.now().toString(),
+                    name: fd.get('name'), 
+                    brand: fd.get('brand'), 
+                    image: fd.get('image'),
+                    gender: fd.get('gender'), 
+                    occasion: fd.get('occasion'), 
+                    season: fd.get('season'),
+                    recommendedShirt: fd.get('recommendedShirt') || 'N/A',
+                    recommendedPant: fd.get('recommendedPant') || 'N/A'
+                });
+                render();
+                e.target.reset();
+                document.getElementById('add-item-modal').classList.remove('active');
+            };
+
+            document.getElementById('logout-btn').onclick = () => {
+                sessionStorage.removeItem('admin_authenticated');
+                sessionStorage.removeItem('lookbook_active_user');
+                window.location.href = 'index.html';
+            };
+
+            render();
+        });
+    </script>
+</body>
+</html>

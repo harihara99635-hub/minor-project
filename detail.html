@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Style Detail | Look Book</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .detail-container {
+            padding: 2.5rem;
+            animation: fadeIn 0.8s ease;
+        }
+        .detail-image {
+            width: 100%;
+            aspect-ratio: 4/5;
+            object-fit: cover;
+            border-radius: 20px;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-premium);
+        }
+        .recommendation-box {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-top: 2rem;
+        }
+        .rec-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(255,255,255,0.02);
+            border-radius: 8px;
+        }
+        .rec-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--beige-primary);
+            color: var(--bg-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <header>
+            <div class="header-left">
+                <button onclick="window.history.back()" style="background:none; border:none; color:var(--beige-primary); font-size:1.5rem; cursor:pointer;">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+            </div>
+            <div class="header-right">
+                <h1 style="font-size: 0.9rem; letter-spacing: 2px;">STYLE ANALYSIS</h1>
+            </div>
+        </header>
+
+        <main id="content-scroll">
+            <div id="detail-content" class="detail-container">
+                <!-- Data injected here -->
+            </div>
+        </main>
+    </div>
+
+    <script src="db.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+            const data = VaultDB.getAttires().find(a => a.id === id);
+
+            if (!data) {
+                document.getElementById('detail-content').innerHTML = "<h2>Style not found.</h2>";
+                return;
+            }
+
+            document.getElementById('detail-content').innerHTML = `
+                <img src="${data.image}" class="detail-image">
+                <div class="view-header">
+                    <h2>${data.name}</h2>
+                    <p>${data.brand} Collection</p>
+                </div>
+                
+                <div class="recommendation-box">
+                    <label class="tag" style="border:none; opacity:0.8; margin-bottom:1rem; display:block;">Curated Combination</label>
+                    <div class="rec-item">
+                        <div class="rec-icon"><i class="fas fa-tshirt"></i></div>
+                        <div style="flex:1;">
+                            <span style="font-size:0.7rem; text-transform:uppercase; opacity:0.6; display:block;">Suggested Shirt</span>
+                            <img src="${data.recommendedShirt}" style="width:50px; height:50px; object-fit:cover; border-radius:4px; margin-top:5px; border:1px solid var(--glass-border);" onerror="this.style.display='none'">
+                        </div>
+                    </div>
+                    <div class="rec-item">
+                        <div class="rec-icon"><i class="fas fa-vest"></i></div>
+                        <div style="flex:1;">
+                            <span style="font-size:0.7rem; text-transform:uppercase; opacity:0.6; display:block;">Suggested Pant</span>
+                            <img src="${data.recommendedPant}" style="width:50px; height:50px; object-fit:cover; border-radius:4px; margin-top:5px; border:1px solid var(--glass-border);" onerror="this.style.display='none'">
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top:2rem; opacity:0.6; font-size:0.85rem; line-height:1.6;">
+                    Expert styling advice from the Look Book curators. This piece is best worn for ${data.occasion} events durante ${data.season}.
+                </div>
+            `;
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Midnight Attire | The Vault</title>
+    <!-- Resource Links -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-color: #050A18;
+            --surface-color: #0A192F;
+            --accent-color: #D4AF37;
+            --beige-color: #F5F5DC;
+            --text-primary: #FFFFFF;
+            --text-secondary: #B0B0B0;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-primary); min-height: 100vh; }
+
+        #app { width: 100%; min-height: 100vh; background: var(--surface-color); position: relative; display: flex; flex-direction: column; overflow-x: hidden; }
+
+        .screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; flex-direction: column; opacity: 0; transition: opacity 0.5s ease; z-index: 1; }
+        .screen.active { display: flex; opacity: 1; z-index: 10; background: var(--surface-color); }
+
+        /* Splash */
+        #splash-screen { background: radial-gradient(circle at center, #1a2a4a 0%, #050a18 100%); justify-content: center; align-items: center; }
+        .logo-text { font-size: 2.5rem; font-weight: 700; margin-bottom: 2rem; }
+        .logo-text span { color: var(--accent-color); font-weight: 300; }
+        .loader { width: 40px; height: 40px; border: 3px solid var(--glass-border); border-top: 3px solid var(--accent-color); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto; }
+        
+        /* Auth */
+        .auth-container { padding: 3rem 2rem; text-align: center; margin: 4rem auto 0; max-width: 400px; width: 90%; }
+        .input-group { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 15px; padding: 1rem; margin-bottom: 1.5rem; display: flex; align-items: center; }
+        .input-group input { background: none; border: none; color: white; width: 100%; outline: none; margin-left: 1rem; }
+        .btn-primary { background: var(--accent-color); color: #000; border: none; padding: 1.2rem; border-radius: 15px; width: 100%; font-weight: 600; cursor: pointer; }
+        
+        /* Main */
+        header { padding: 2rem 1.5rem 1rem; display: flex; justify-content: space-between; align-items: center; }
+        #content-scroll { flex: 1; overflow-y: auto; padding: 1rem 1.5rem 6rem; }
+        .attire-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.5rem; }
+        
+        @media (min-width: 768px) {
+            .attire-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+            header, #content-scroll { padding-left: 4rem; padding-right: 4rem; }
+        }
+
+        .attire-card { background: var(--glass-bg); border-radius: 20px; border: 1px solid var(--glass-border); overflow: hidden; position: relative; }
+        .card-image { width: 100%; aspect-ratio: 3/4; }
+        .card-image img { width: 100%; height: 100%; object-fit: cover; }
+        .card-overlay { position: absolute; top: 10px; right: 10px; }
+        .like-btn { background: rgba(0,0,0,0.3); border: none; color: white; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; }
+        .like-btn.active { color: #ff4757; }
+        .card-info { padding: 1rem; }
+        .tag { font-size: 0.7rem; padding: 2px 8px; background: rgba(212,175,55,0.1); color: var(--accent-color); border-radius: 5px; margin-right: 5px; }
+
+        .bottom-nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 500px; background: rgba(10,25,47,0.8); backdrop-filter: blur(10px); border: 1px solid var(--glass-border); border-radius: 25px; display: flex; justify-content: space-around; padding: 0.8rem; z-index: 100; }
+        .nav-item { background: none; border: none; color: var(--text-secondary); display: flex; flex-direction: column; align-items: center; font-size: 0.7rem; cursor: pointer; }
+        .nav-item.active { color: var(--accent-color); }
+
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: flex-end; z-index: 1000; }
+        .modal.active { display: flex; }
+        .modal-content { background: var(--surface-color); width: 100%; max-width: 500px; border-radius: 30px 30px 0 0; padding: 2rem; position: relative; }
+        @media (min-width: 768px) { .modal { align-items: center; } .modal-content { border-radius: 30px; } }
+
+        .empty-state { grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-secondary); opacity: 0.6; }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Splash -->
+        <div id="splash-screen" class="screen active">
+            <div style="text-align: center;">
+                <h1 class="logo-text"><i class="fas fa-moon" style="color:var(--accent-color)"></i> Midnight<span>Attire</span></h1>
+                <div class="loader"></div>
+                <button onclick="transitionToAuth()" style="margin-top: 2rem; background: none; border: 1px solid var(--glass-border); color: var(--text-secondary); padding: 0.5rem 1.5rem; border-radius: 20px; cursor: pointer;">Enter the Vault</button>
+            </div>
+        </div>
+
+        <!-- Auth -->
+        <div id="auth-screen" class="screen">
+            <div class="auth-container">
+                <h2 style="margin-bottom: 2rem;">Unlock the Vault</h2>
+                <div class="input-group"><i class="fas fa-user"></i><input type="text" placeholder="Username"></div>
+                <div class="input-group"><i class="fas fa-lock"></i><input type="password" placeholder="Password"></div>
+                <button class="btn-primary" onclick="enterApp()">Continue as Guest</button>
+            </div>
+        </div>
+
+        <!-- Main -->
+        <div id="main-interface" class="screen">
+            <header>
+                <div style="display:flex; align-items:center; gap:10px;"><i class="fas fa-moon" style="color:var(--accent-color)"></i><h2 style="font-size:1.2rem; letter-spacing:2px;">MIDNIGHT</h2></div>
+                <div style="display:flex; gap:10px;">
+                    <button onclick="toggleModal('filter-modal')" style="background:var(--glass-bg); border:1px solid var(--glass-border); color:white; width:40px; height:40px; border-radius:10px; cursor:pointer;"><i class="fas fa-sliders-h"></i></button>
+                </div>
+            </header>
+            
+            <main id="content-scroll">
+                <div id="discovery-view" class="view active">
+                    <h3 id="filter-status" style="margin-bottom: 1.5rem; font-weight: 400; color: var(--text-secondary);">All Styles • All Seasons</h3>
+                    <div id="attire-grid" class="attire-grid"></div>
+                </div>
+                <div id="closet-view" class="view" style="display:none;">
+                    <h3 style="margin-bottom: 1.5rem;">Your Midnight Closet</h3>
+                    <div id="closet-grid" class="attire-grid"></div>
+                </div>
+            </main>
+
+            <nav class="bottom-nav">
+                <button class="nav-item active" onclick="switchView('discovery-view', this)"><i class="fas fa-compass"></i><span>Discover</span></button>
+                <button class="nav-item" onclick="switchView('closet-view', this)"><i class="fas fa-heart"></i><span>Closet</span></button>
+            </nav>
+        </div>
+
+        <!-- Filter Modal -->
+        <div id="filter-modal" class="modal">
+            <div class="modal-content">
+                <h3 style="margin-bottom:1.5rem;">Refine Style</h3>
+                <div style="margin-bottom:2rem;">
+                    <p style="color:var(--text-secondary); margin-bottom:10px;">Occasion</p>
+                    <div id="filter-chips" style="display:flex; flex-wrap:wrap; gap:10px;">
+                        <button class="tag" style="padding:10px 15px; cursor:pointer;" onclick="setFilter('wedding')">Wedding</button>
+                        <button class="tag" style="padding:10px 15px; cursor:pointer;" onclick="setFilter('casual')">Casual</button>
+                        <button class="tag" style="padding:10px 15px; cursor:pointer;" onclick="setFilter('party')">Party</button>
+                        <button class="tag" style="padding:10px 15px; cursor:pointer;" onclick="setFilter('all')">Show All</button>
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="toggleModal('filter-modal')">Apply & Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const INITIAL_DATA = [
+            { id: 1, name: 'Velvet Midnight Blazer', brand: 'Royal Tailors', img: 'https://images.unsplash.com/photo-1594932224010-74f43a1835ff?auto=format&fit=crop&w=600&q=80', tag: 'party' },
+            { id: 2, name: 'Evening Silk Gown', brand: 'Elegance', img: 'https://images.unsplash.com/photo-1566174053879-31528523f8ae?auto=format&fit=crop&w=600&q=80', tag: 'wedding' },
+            { id: 3, name: 'Modern Charcoal Suit', brand: 'Urban', img: 'https://images.unsplash.com/photo-1593032465175-481ac7f401a0?auto=format&fit=crop&w=600&q=80', tag: 'party' },
+            { id: 4, name: 'Linen Summer Set', brand: 'Breeze', img: 'https://images.unsplash.com/photo-1475178626620-a4d074967452?auto=format&fit=crop&w=600&q=80', tag: 'casual' }
+        ];
+
+        let closet = [];
+        let currentFilter = 'all';
+
+        function transitionToAuth() {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('auth-screen').classList.add('active');
+        }
+
+        function enterApp() {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('main-interface').classList.add('active');
+            render();
+        }
+
+        function switchView(id, btn) {
+            document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
+            document.getElementById(id).style.display = 'block';
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            btn.classList.add('active');
+            render();
+        }
+
+        function toggleModal(id) {
+            document.getElementById(id).classList.toggle('active');
+        }
+
+        function setFilter(tag) {
+            currentFilter = tag;
+            document.getElementById('filter-status').innerText = tag === 'all' ? 'All Styles • All Seasons' : tag.charAt(0).toUpperCase() + tag.slice(1) + ' Collection';
+            render();
+        }
+
+        function toggleLike(id) {
+            const item = INITIAL_DATA.find(i => i.id == id);
+            const idx = closet.findIndex(i => i.id == id);
+            if (idx === -1) closet.push(item);
+            else closet.splice(idx, 1);
+            render();
+        }
+
+        function render() {
+            const grid = document.getElementById('attire-grid');
+            const data = currentFilter === 'all' ? INITIAL_DATA : INITIAL_DATA.filter(i => i.tag === currentFilter);
+            
+            grid.innerHTML = data.map(i => `
+                <div class="attire-card">
+                    <div class="card-image">
+                        <img src="${i.img}" alt="">
+                        <div class="card-overlay"><button class="like-btn ${closet.some(c => c.id == i.id) ? 'active' : ''}" onclick="toggleLike(${i.id})"><i class="fas fa-heart"></i></button></div>
+                    </div>
+                    <div class="card-info"><h4>${i.name}</h4><p style="font-size:0.8rem; color:var(--text-secondary)">${i.brand}</p></div>
+                </div>
+            `).join('');
+
+            const closetGrid = document.getElementById('closet-grid');
+            if (closet.length === 0) {
+                closetGrid.innerHTML = '<div class="empty-state">No items in your closet yet.</div>';
+            } else {
+                closetGrid.innerHTML = closet.map(i => `
+                    <div class="attire-card">
+                        <div class="card-image"><img src="${i.img}" alt=""></div>
+                        <div class="card-info"><h4>${i.name}</h4></div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        setTimeout(transitionToAuth, 3500);
+    </script>
+</body>
+</html>

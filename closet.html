@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Look Book Closet | Personal Collection</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <header>
+            <div class="header-left">
+                <h1>Look Book</h1>
+            </div>
+            <div class="header-right">
+                <button onclick="window.location.href='index.html'" title="Back to Discovery"><i class="fas fa-compass"></i></button>
+            </div>
+        </header>
+
+        <main id="content-scroll">
+            <section id="closet-view" class="view active">
+                <div class="view-header">
+                    <h2>My Closet</h2>
+                    <p>Your handpicked style inspirations</p>
+                </div>
+                <div id="closet-grid" class="attire-grid">
+                    <!-- Closet items injected here -->
+                </div>
+            </section>
+        </main>
+
+        <nav class="bottom-nav">
+            <button class="nav-item" onclick="window.location.href='index.html'">
+                <i class="fas fa-compass"></i>
+                <span>Discover</span>
+            </button>
+            <button class="nav-item active">
+                <i class="fas fa-heart"></i>
+                <span>Closet</span>
+            </button>
+        </nav>
+    </div>
+
+    <script src="db.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const closetGrid = document.getElementById('closet-grid');
+            let attireData = VaultDB.getAttires();
+            let closet = [];
+            let currentUser = null;
+
+            function init() {
+                // Check session
+                const sessionUser = sessionStorage.getItem('lookbook_active_user');
+                if (!sessionUser) {
+                    window.location.href = 'index.html'; // Kick back if not logged in
+                    return;
+                }
+                currentUser = JSON.parse(sessionUser);
+
+                try {
+                    const saved = localStorage.getItem('midnight_closet_preference');
+                    closet = saved ? JSON.parse(saved) : [];
+                } catch(e) { closet = []; }
+                render();
+            }
+
+            function render() {
+                const items = closet.map(id => attireData.find(i => i.id === id)).filter(Boolean);
+                closetGrid.innerHTML = items.length ? items.map(createCard).join('') : `
+                    <div class="empty-state" style="text-align:center; padding-top:5rem; opacity:0.5;">
+                        <i class="fas fa-heart" style="font-size:3rem; margin-bottom:1rem; display:block;"></i>
+                        <p>Your closet is empty. Start "hearting" styles to see them here.</p>
+                    </div>
+                `;
+            }
+
+            function createCard(i) {
+                const avg = VaultDB.getAverageRating(i.id);
+                return `
+                    <div class="attire-card">
+                        <div class="card-image" onclick="window.location.href='detail.html?id=${i.id}'" style="cursor:pointer;">
+                            <img src="${i.image}" loading="lazy">
+                            <div class="card-overlay">
+                                <button class="like-btn active" onclick="toggleLike('${i.id}')">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-info">
+                            <h4>${i.name}</h4>
+                            <p>${i.brand}</p>
+                            <div class="card-tags"><span class="tag">${i.occasion}</span><span class="tag">${i.season}</span></div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            window.toggleLike = (id) => {
+                closet = closet.filter(cid => cid !== id);
+                localStorage.setItem('midnight_closet_preference', JSON.stringify(closet));
+                render();
+            };
+
+            init();
+        });
+    </script>
+</body>
+</html>

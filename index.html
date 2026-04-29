@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Look Book Attire | Premium Style Blueprint</title>
+    <meta name="description" content="Discover premium attire recommendations tailored for every occasion and season with the refined Midnight Lookbook.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Splash Screen -->
+        <div id="splash-screen" class="screen active">
+            <div class="splash-content">
+                <div class="logo-container">
+                    <i class="fas fa-moon logo-icon"></i>
+                    <h1 class="logo-text">Look<span>Book</span></h1>
+                </div>
+                <div class="loader"></div>
+                <button id="skip-splash" style="margin-top: 3rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text-secondary); padding: 0.8rem 1.5rem; border-radius: 20px; cursor: pointer; font-size: 0.8rem; backdrop-filter: blur(10px);">Enter the Vault</button>
+            </div>
+        </div>
+
+        <!-- Auth Screen -->
+        <div id="auth-screen" class="screen">
+            <div class="auth-container">
+                <h2>The Vault</h2>
+                <p>Sign in to access your curated collections</p>
+                <form id="login-form">
+                    <div class="input-group">
+                        <i class="fas fa-user-circle"></i>
+                        <input type="text" id="username" placeholder="Username" required>
+                    </div>
+                    <div class="input-group">
+                        <i class="fas fa-shield-alt"></i>
+                        <input type="password" id="password" placeholder="Access Key" required>
+                    </div>
+                    <button type="submit" class="btn-primary">Unlock Experience</button>
+                    <button type="button" class="btn-secondary" id="guest-access">Explore as Guest</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Main App Interface -->
+        <div id="main-interface" class="screen">
+            <!-- Header -->
+            <header>
+                <div class="header-left">
+                    <h1>Look Book</h1>
+                </div>
+                <div class="header-right">
+                    <button id="logout-btn" title="Sign Out"><i class="fas fa-sign-out-alt"></i></button>
+                    <button id="filter-toggle" title="Filter Selection"><i class="fas fa-sliders"></i></button>
+                </div>
+            </header>
+
+            <!-- Content Area -->
+            <main id="content-scroll">
+                <!-- Discovery Section -->
+                <section id="discovery-view" class="view active">
+                    <div class="view-header">
+                        <h2>Discover Your Look</h2>
+                        <p id="current-filter-label">All Occasions • All Seasons</p>
+                    </div>
+                    <div id="attire-grid" class="attire-grid">
+                        <!-- Attire cards will be injected here -->
+                    </div>
+                </section>
+            </main>
+
+            <!-- Bottom Navigation -->
+            <nav class="bottom-nav">
+                <button class="nav-item active" onclick="window.location.href='index.html'">
+                    <i class="fas fa-compass"></i>
+                    <span>Discover</span>
+                </button>
+                <button class="nav-item" onclick="window.location.href='closet.html'">
+                    <i class="fas fa-heart"></i>
+                    <span>Closet</span>
+                </button>
+            </nav>
+        </div>
+
+        <!-- Filter Modal -->
+        <div id="filter-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Refine Selection</h3>
+                    <button class="close-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="filter-section">
+                        <label>Gender</label>
+                        <div class="chip-group" data-filter="gender">
+                            <span class="chip active" data-value="all">All</span>
+                            <span class="chip" data-value="male">Male</span>
+                            <span class="chip" data-value="female">Female</span>
+                        </div>
+                    </div>
+                    <div class="filter-section">
+                        <label>Occasion</label>
+                        <div class="chip-group" data-filter="occasion">
+                            <span class="chip active" data-value="all">All</span>
+                            <span class="chip" data-value="wedding">Wedding</span>
+                            <span class="chip" data-value="casual">Casual</span>
+                            <span class="chip" data-value="interview">Interview</span>
+                            <span class="chip" data-value="party">Party</span>
+                        </div>
+                    </div>
+                    <div class="filter-section">
+                        <label>Season</label>
+                        <div class="chip-group" data-filter="season">
+                            <span class="chip active" data-value="all">All</span>
+                            <span class="chip" data-value="summer">Summer</span>
+                            <span class="chip" data-value="winter">Winter</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="apply-filters" class="btn-primary">Apply Filters</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="db.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
