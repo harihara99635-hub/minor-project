@@ -1,0 +1,50 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Push to GitHub",
+			"type": "shell",
+			"command": "powershell.exe",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"cd \"c:\\Users\\harih\\OneDrive\\Desktop\\new attire\"; git push -u origin main"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Push to GitHub",
+			"type": "shell",
+			"command": "powershell.exe",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"Set-Location -LiteralPath 'c:\\Users\\harih\\OneDrive\\Desktop\\new attire'; git push -u origin main"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Push to GitHub",
+			"type": "shell",
+			"command": "powershell.exe -NoProfile -Command \"Set-Location -LiteralPath 'c:\\Users\\harih\\OneDrive\\Desktop\\new attire'; git push -u origin main\"",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Push to GitHub",
+			"type": "shell",
+			"command": "cmd.exe /c \"pushd \"\"c:\\Users\\harih\\OneDrive\\Desktop\\new attire\"\" && git push -u origin main\"",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Push to GitHub",
+			"type": "shell",
+			"command": "cmd.exe /c \"pushd C:\\Users\\harih\\OneDrive\\Desktop\\NEWATI~1 && git push -u origin main\"",
+			"isBackground": false,
+			"problemMatcher": []
+		}
+	]
+}

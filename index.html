@@ -55,6 +55,7 @@
                     <h1>Look Book</h1>
                 </div>
                 <div class="header-right">
+                    <button id="smart-scan-toggle" title="Smart AI Scan" style="color: var(--accent-gold); border-color: var(--accent-gold);"><i class="fas fa-magic"></i></button>
                     <button id="logout-btn" title="Sign Out"><i class="fas fa-sign-out-alt"></i></button>
                     <button id="filter-toggle" title="Filter Selection"><i class="fas fa-sliders"></i></button>
                 </div>
@@ -124,6 +125,54 @@
                 </div>
                 <div class="modal-footer">
                     <button id="apply-filters" class="btn-primary">Apply Filters</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Smart Fit Modal -->
+        <div id="smart-fit-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Smart AI Scan</h3>
+                    <button class="close-modal">&times;</button>
+                </div>
+                <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+                    <p style="color: var(--text-secondary); font-size: 0.8rem; margin-bottom: 2rem; text-transform: none;">Our ML engine analyzes your profile to recommend the perfect fit and palette.</p>
+                    
+                    <div class="filter-section">
+                        <label>Skin Tone Palette</label>
+                        <div class="chip-group" data-profile="skinTone">
+                            <span class="chip" data-value="fair">Fair</span>
+                            <span class="chip" data-value="medium">Medium</span>
+                            <span class="chip" data-value="olive">Olive</span>
+                            <span class="chip" data-value="tan">Tan</span>
+                            <span class="chip" data-value="deep">Deep</span>
+                        </div>
+                    </div>
+
+                    <div class="filter-section">
+                        <label>Body Architecture</label>
+                        <div class="chip-group" data-profile="bodyType">
+                            <span class="chip" data-value="slim">Slim</span>
+                            <span class="chip" data-value="athletic">Athletic</span>
+                            <span class="chip" data-value="regular">Regular</span>
+                            <span class="chip" data-value="heavy">Heavy</span>
+                        </div>
+                    </div>
+
+                    <div class="input-row">
+                        <div class="input-group-alt">
+                            <label>Height (cm)</label>
+                            <input type="number" id="profile-height" placeholder="175" min="100" max="250">
+                        </div>
+                        <div class="input-group-alt">
+                            <label>Waist (in)</label>
+                            <input type="number" id="profile-waist" placeholder="32" min="20" max="60">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="run-smart-scan" class="btn-primary" style="background: var(--accent-gold);">Initiate Analysis</button>
                 </div>
             </div>
         </div>

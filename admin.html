@@ -128,14 +128,38 @@
                             </div>
                         </div>
 
+                        <div class="view-header" style="margin: 2rem 0 1rem; border-top: 1px solid var(--glass-border); padding-top: 1rem;">
+                            <h4 style="font-size: 0.8rem; color: var(--accent-gold);">ML Recommendation Metadata</h4>
+                        </div>
+                        <div class="input-group-alt">
+                            <label>Suitable Skin Tones (comma separated)</label>
+                            <input type="text" name="skinTones" placeholder="fair, medium, olive, tan, deep" value="fair, medium, deep">
+                        </div>
                         <div class="input-row">
                             <div class="input-group-alt">
-                                <label>Recommended Shirt (Image URL)</label>
-                                <input type="url" name="recommendedShirt" placeholder="Paste shirt image link">
+                                <label>Optimal Body Type</label>
+                                <select name="bodyType">
+                                    <option value="regular">Regular</option>
+                                    <option value="slim">Slim</option>
+                                    <option value="athletic">Athletic</option>
+                                    <option value="heavy">Heavy</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="input-row">
+                            <div class="input-group-alt">
+                                <label>Height Suitability (cm)</label>
+                                <div style="display:flex; gap:0.5rem;">
+                                    <input type="number" name="heightMin" placeholder="Min" value="160">
+                                    <input type="number" name="heightMax" placeholder="Max" value="190">
+                                </div>
                             </div>
                             <div class="input-group-alt">
-                                <label>Recommended Pant (Image URL)</label>
-                                <input type="url" name="recommendedPant" placeholder="Paste pant image link">
+                                <label>Waist Suitability (in)</label>
+                                <div style="display:flex; gap:0.5rem;">
+                                    <input type="number" name="waistMin" placeholder="Min" value="28">
+                                    <input type="number" name="waistMax" placeholder="Max" value="36">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -225,8 +249,10 @@
                     gender: fd.get('gender'), 
                     occasion: fd.get('occasion'), 
                     season: fd.get('season'),
-                    recommendedShirt: fd.get('recommendedShirt') || 'N/A',
-                    recommendedPant: fd.get('recommendedPant') || 'N/A'
+                    skinTones: fd.get('skinTones').split(',').map(s => s.trim().toLowerCase()),
+                    bodyType: fd.get('bodyType'),
+                    heightRange: [parseInt(fd.get('heightMin')), parseInt(fd.get('heightMax'))],
+                    waistRange: [parseInt(fd.get('waistMin')), parseInt(fd.get('waistMax'))]
                 });
                 render();
                 e.target.reset();

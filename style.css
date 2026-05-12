@@ -323,6 +323,52 @@ header {
     color: var(--accent-gold);
 }
 
+.match-badge {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background: var(--accent-gold);
+    color: var(--bg-color);
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+    animation: slideInLeft 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#smart-scan-toggle {
+    position: relative;
+    overflow: hidden;
+}
+
+#smart-scan-toggle::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(212, 175, 55, 0.2), transparent);
+    transform: rotate(45deg);
+    animation: scanSweep 3s infinite linear;
+}
+
+@keyframes scanSweep {
+    0% { transform: rotate(45deg) translateY(-100%); }
+    100% { transform: rotate(45deg) translateY(100%); }
+}
+
+@keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
 .star-rating {
     cursor: pointer;
     color: var(--beige-primary);

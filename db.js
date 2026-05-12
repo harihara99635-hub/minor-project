@@ -18,7 +18,9 @@ const VaultDB = (function() {
                 brand: 'Luxe Tailors',
                 image: 'https://images.unsplash.com/photo-1594932224010-74f43a1835ff?auto=format&fit=crop&w=800&q=80',
                 gender: 'male', occasion: 'party', season: 'winter',
-                recommendedShirt: 'Silk Dress Shirt', recommendedPant: 'Slim Fit Black Trousers'
+                recommendedShirt: 'Silk Dress Shirt', recommendedPant: 'Slim Fit Black Trousers',
+                skinTones: ['fair', 'medium', 'deep'], bodyType: 'athletic', heightRange: [170, 195], waistRange: [30, 36],
+                aiFitting: 'ai_fitting_blazer_1778565293870.png'
             },
             {
                 id: '2',
@@ -26,7 +28,9 @@ const VaultDB = (function() {
                 brand: 'Aura Couture',
                 image: 'https://images.unsplash.com/photo-1566174053879-31528523f8ae?auto=format&fit=crop&w=800&q=80',
                 gender: 'female', occasion: 'wedding', season: 'summer',
-                recommendedShirt: 'N/A', recommendedPant: 'N/A'
+                recommendedShirt: 'N/A', recommendedPant: 'N/A',
+                skinTones: ['fair', 'olive', 'tan', 'deep'], bodyType: 'slim', heightRange: [155, 175], waistRange: [24, 30],
+                aiFitting: 'ai_fitting_gown_1778565366060.png'
             },
             {
                 id: '3',
@@ -34,10 +38,22 @@ const VaultDB = (function() {
                 brand: 'Urban Elite',
                 image: 'https://images.unsplash.com/photo-1593032465175-481ac7f401a0?auto=format&fit=crop&w=800&q=80',
                 gender: 'male', occasion: 'interview', season: 'winter',
-                recommendedShirt: 'White Poplin Shirt', recommendedPant: 'Matching Charcoal Trousers'
+                recommendedShirt: 'White Poplin Shirt', recommendedPant: 'Matching Charcoal Trousers',
+                skinTones: ['fair', 'medium', 'deep'], bodyType: 'regular', heightRange: [165, 185], waistRange: [32, 38],
+                aiFitting: 'ai_fitting_suit_1778565380810.png'
+            },
+            {
+                id: '4',
+                name: 'Azure Summer Linen',
+                brand: 'Coastal Luxe',
+                image: 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=800&q=80',
+                gender: 'male', occasion: 'casual', season: 'summer',
+                recommendedShirt: 'Linen Tee', recommendedPant: 'Chino Shorts',
+                skinTones: ['tan', 'medium', 'deep'], bodyType: 'slim', heightRange: [160, 190], waistRange: [28, 34],
+                aiFitting: 'ai_fitting_linen_1778565479645.png'
             }
         ],
-        ratings: [], // { attireId: string, username: string, rating: number, timestamp: number }
+        ratings: [],
         settings: {
             theme: 'lookbook'
         }

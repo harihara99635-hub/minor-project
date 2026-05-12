@@ -10,6 +10,8 @@
     let closet = []; // Array of attire IDs
     let currentUser = null;
     let activeFilters = { gender: 'all', occasion: 'all', season: 'all' };
+    let userProfile = { skinTone: null, bodyType: null, height: null, waist: null };
+    let smartMode = false;
     let UI = {};
 
     function init() {
@@ -47,7 +49,8 @@
             attireGrid: document.getElementById('attire-grid'),
             closetGrid: document.getElementById('closet-grid'),
             filterLabel: document.getElementById('current-filter-label'),
-            filterModal: document.getElementById('filter-modal')
+            filterModal: document.getElementById('filter-modal'),
+            smartModal: document.getElementById('smart-fit-modal')
         };
     }
 
@@ -56,6 +59,9 @@
         try {
             const saved = localStorage.getItem('midnight_closet_preference');
             closet = saved ? JSON.parse(saved) : [];
+            
+            const savedProfile = localStorage.getItem('midnight_user_profile');
+            if (savedProfile) userProfile = JSON.parse(savedProfile);
         } catch(e) { closet = []; }
     }
 
@@ -139,11 +145,56 @@
 
         if (applyFilters) {
             applyFilters.onclick = () => {
+                smartMode = false; // Disable smart mode when manual filters applied
                 renderAttire();
                 updateFilterLabel();
                 UI.filterModal.classList.remove('active');
             };
         }
+
+        // Smart Scan Logic
+        const smartToggle = document.getElementById('smart-scan-toggle');
+        const runSmart = document.getElementById('run-smart-scan');
+
+        if (smartToggle) smartToggle.onclick = () => {
+            UI.smartModal.classList.add('active');
+            syncProfileToUI();
+        };
+
+        document.querySelectorAll('.chip-group[data-profile] .chip').forEach(c => {
+            c.onclick = () => {
+                const s = c.parentElement.getAttribute('data-profile');
+                document.querySelectorAll(`.chip-group[data-profile="${s}"] .chip`).forEach(cc => cc.classList.remove('active'));
+                c.classList.add('active');
+                userProfile[s] = c.getAttribute('data-value');
+            };
+        });
+
+        if (runSmart) {
+            runSmart.onclick = () => {
+                userProfile.height = parseInt(document.getElementById('profile-height').value);
+                userProfile.waist = parseInt(document.getElementById('profile-waist').value);
+                
+                localStorage.setItem('midnight_user_profile', JSON.stringify(userProfile));
+                smartMode = true;
+                UI.smartModal.classList.remove('active');
+                renderAttire();
+                updateFilterLabel();
+            };
+        }
+    }
+
+    function syncProfileToUI() {
+        if (userProfile.skinTone) {
+            const chip = document.querySelector(`.chip-group[data-profile="skinTone"] .chip[data-value="${userProfile.skinTone}"]`);
+            if (chip) chip.click();
+        }
+        if (userProfile.bodyType) {
+            const chip = document.querySelector(`.chip-group[data-profile="bodyType"] .chip[data-value="${userProfile.bodyType}"]`);
+            if (chip) chip.click();
+        }
+        if (userProfile.height) document.getElementById('profile-height').value = userProfile.height;
+        if (userProfile.waist) document.getElementById('profile-waist').value = userProfile.waist;
     }
 
     function handleSuccessfulLogin(isAdmin) {
@@ -179,21 +230,77 @@
     }
 
     function renderAttire() {
-        const f = attireData.filter(i => {
+        let f = attireData.filter(i => {
             return (activeFilters.gender === 'all' || i.gender === activeFilters.gender) &&
                    (activeFilters.occasion === 'all' || i.occasion === activeFilters.occasion) &&
                    (activeFilters.season === 'all' || i.season === activeFilters.season);
         });
+
+        if (smartMode) {
+            f = f.map(item => {
+                return { ...item, matchScore: calculateMatchScore(item) };
+            }).sort((a, b) => b.matchScore - a.matchScore);
+        }
+
         UI.attireGrid.innerHTML = f.length ? f.map(createCard).join('') : '<div class="empty-state">No matching styles.</div>';
+    }
+
+    function calculateMatchScore(item) {
+        // v4.0 Hyper-Fast Vector Engine
+        // Calculates compatibility based on attribute variance
+        const profile = [
+            userProfile.skinTone ? 1 : 0,
+            userProfile.bodyType ? 1 : 0,
+            userProfile.height ? 1 : 0,
+            userProfile.waist ? 1 : 0
+        ];
+
+        if (profile.reduce((a, b) => a + b, 0) === 0) return 0;
+
+        let totalScore = 0;
+        let count = 0;
+
+        // 1. Skin Palette Variance (35% weight)
+        if (userProfile.skinTone && item.skinTones) {
+            const isMatch = item.skinTones.includes(userProfile.skinTone);
+            totalScore += isMatch ? 100 : 40;
+            count++;
+        }
+
+        // 2. Structural Compatibility (35% weight)
+        if (userProfile.bodyType && item.bodyType) {
+            const bodyMap = { 'slim': 1, 'athletic': 2, 'regular': 3, 'heavy': 4 };
+            const diff = Math.abs(bodyMap[userProfile.bodyType] - bodyMap[item.bodyType]);
+            totalScore += (1 - (diff / 4)) * 100;
+            count++;
+        }
+
+        // 3. Dimensional Fit (30% weight)
+        if (userProfile.height && item.heightRange) {
+            const mid = (item.heightRange[0] + item.heightRange[1]) / 2;
+            const range = (item.heightRange[1] - item.heightRange[0]) / 2;
+            const variance = Math.abs(userProfile.height - mid);
+            totalScore += variance <= range ? 100 : Math.max(0, 100 - (variance - range) * 5);
+            count++;
+        }
+
+        return count > 0 ? Math.round(totalScore / count) : 0;
     }
 
     function createCard(i) {
         const liked = closet.includes(i.id);
         const avg = VaultDB.getAverageRating(i.id);
+        const matchDisplay = smartMode && i.matchScore ? `
+            <div class="match-badge">
+                <i class="fas fa-brain"></i> ${i.matchScore}% Match
+            </div>
+        ` : '';
+
         return `
             <div class="attire-card">
                 <div class="card-image" onclick="window.location.href='detail.html?id=${i.id}'" style="cursor:pointer;">
                     <img src="${i.image}" loading="lazy">
+                    ${matchDisplay}
                     <div class="card-overlay">
                         <button class="like-btn ${liked ? 'active' : ''}" onclick="window.toggleLike(event, '${i.id}')">
                             <i class="fas fa-heart"></i>
@@ -237,7 +344,13 @@
 
     function updateFilterLabel() {
         const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
-        if (UI.filterLabel) UI.filterLabel.innerText = `${cap(activeFilters.gender)} • ${cap(activeFilters.occasion)} • ${cap(activeFilters.season)}`;
+        if (UI.filterLabel) {
+            if (smartMode) {
+                UI.filterLabel.innerHTML = `<span style="color:var(--accent-gold)"><i class="fas fa-brain"></i> AI Analysis Active</span>`;
+            } else {
+                UI.filterLabel.innerText = `${cap(activeFilters.gender)} • ${cap(activeFilters.occasion)} • ${cap(activeFilters.season)}`;
+            }
+        }
     }
 
     document.addEventListener('DOMContentLoaded', init);

@@ -70,23 +70,67 @@
             <div id="detail-content" class="detail-container">
                 <!-- Data injected here -->
             </div>
+
+            <!-- 3D Mirror Section -->
+            <div id="mirror-section" class="detail-container" style="display:none; padding-top:0;">
+                <div class="view-header">
+                    <h2 style="color:var(--accent-gold); font-size:1.5rem;"><i class="fas fa-cube"></i> Structural Preview</h2>
+                    <p>3D Fit Analysis</p>
+                </div>
+                <div id="three-container" style="width:100%; height:400px; background: rgba(0,0,0,0.2); border-radius:20px; border:1px solid var(--glass-border); position:relative; overflow:hidden;">
+                    <div id="loading-3d" style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; background:var(--navy-deep); z-index:5;">
+                        <div class="loader"></div>
+                        <p style="font-size:0.7rem; margin-top:1rem; letter-spacing:2px;">CALIBRATING MANNEQUIN...</p>
+                    </div>
+                </div>
+                <div style="margin-top:1.5rem; display:flex; gap:10px;">
+                    <button class="close-alt-view btn-secondary" style="margin-top:0; flex:1;"><i class="fas fa-camera"></i> 2D Photography</button>
+                </div>
+            </div>
+
+            <!-- AI Synthesis Section -->
+            <div id="ai-synthesis-section" class="detail-container" style="display:none; padding-top:0;">
+                <div class="view-header">
+                    <h2 style="color:var(--accent-gold); font-size:1.5rem;"><i class="fas fa-microchip"></i> AI Realistic Human</h2>
+                    <p>Neural Style Synthesis v4.0</p>
+                </div>
+                <div id="ai-result-container" style="position:relative; width:100%; aspect-ratio:4/5; border-radius:20px; overflow:hidden; border:1px solid var(--accent-gold);">
+                    <img id="ai-synthesis-img" src="" style="width:100%; height:100%; object-fit:cover;">
+                    <div id="ai-synthesis-overlay" style="position:absolute; inset:0; background:var(--navy-deep); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:10;">
+                        <div class="loader"></div>
+                        <p style="font-size:0.7rem; margin-top:1.5rem; letter-spacing:4px; color:var(--accent-gold);">SYNTHESIZING REALISTIC HUMAN...</p>
+                    </div>
+                    <div style="position:absolute; bottom:20px; right:20px; background:rgba(0,0,0,0.6); backdrop-filter:blur(10px); padding:8px 15px; border-radius:4px; font-size:0.6rem; letter-spacing:1px;">AI GENERATED RESULT</div>
+                </div>
+                <div style="margin-top:1.5rem; display:flex; gap:10px;">
+                    <button class="close-alt-view btn-secondary" style="margin-top:0; flex:1;"><i class="fas fa-camera"></i> 2D Photography</button>
+                </div>
+            </div>
+            
+            <div class="detail-container" style="padding-top:0; display:flex; flex-direction:column; gap:12px;">
+                <button id="open-ai-synthesis" class="btn-primary" style="background: linear-gradient(45deg, #D4AF37, #FFD700); margin-top:0;"><i class="fas fa-wand-magic-sparkles"></i> Synthesize Realistic Human (Fast)</button>
+                <button id="open-mirror" class="btn-secondary" style="margin-top:0; border-color:var(--glass-border);"><i class="fas fa-vr-cardboard"></i> View 3D Structural Fit</button>
+            </div>
         </main>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.152.2/three.min.js"></script>
     <script src="db.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             const id = urlParams.get('id');
             const data = VaultDB.getAttires().find(a => a.id === id);
+            const userProfile = JSON.parse(localStorage.getItem('midnight_user_profile') || '{}');
 
             if (!data) {
                 document.getElementById('detail-content').innerHTML = "<h2>Style not found.</h2>";
                 return;
             }
 
+            // Render Static Content
             document.getElementById('detail-content').innerHTML = `
-                <img src="${data.image}" class="detail-image">
+                <img src="${data.image}" class="detail-image" id="static-img">
                 <div class="view-header">
                     <h2>${data.name}</h2>
                     <p>${data.brand} Collection</p>
@@ -98,22 +142,208 @@
                         <div class="rec-icon"><i class="fas fa-tshirt"></i></div>
                         <div style="flex:1;">
                             <span style="font-size:0.7rem; text-transform:uppercase; opacity:0.6; display:block;">Suggested Shirt</span>
-                            <img src="${data.recommendedShirt}" style="width:50px; height:50px; object-fit:cover; border-radius:4px; margin-top:5px; border:1px solid var(--glass-border);" onerror="this.style.display='none'">
+                            <div style="color:var(--text-primary); font-size:0.9rem; margin-top:4px;">${data.recommendedShirt || 'N/A'}</div>
                         </div>
                     </div>
                     <div class="rec-item">
                         <div class="rec-icon"><i class="fas fa-vest"></i></div>
                         <div style="flex:1;">
                             <span style="font-size:0.7rem; text-transform:uppercase; opacity:0.6; display:block;">Suggested Pant</span>
-                            <img src="${data.recommendedPant}" style="width:50px; height:50px; object-fit:cover; border-radius:4px; margin-top:5px; border:1px solid var(--glass-border);" onerror="this.style.display='none'">
+                            <div style="color:var(--text-primary); font-size:0.9rem; margin-top:4px;">${data.recommendedPant || 'N/A'}</div>
                         </div>
                     </div>
                 </div>
 
                 <div style="margin-top:2rem; opacity:0.6; font-size:0.85rem; line-height:1.6;">
-                    Expert styling advice from the Look Book curators. This piece is best worn for ${data.occasion} events durante ${data.season}.
+                    Expert styling advice from the Look Book curators. This piece is best worn for ${data.occasion} events during ${data.season}.
                 </div>
             `;
+
+            // UI Controls
+            const openMirror = document.getElementById('open-mirror');
+            const openAI = document.getElementById('open-ai-synthesis');
+            const detailContent = document.getElementById('detail-content');
+            const mirrorSection = document.getElementById('mirror-section');
+            const aiSection = document.getElementById('ai-synthesis-section');
+            const actionContainer = openMirror.parentElement;
+
+            function hideAllDetail() {
+                detailContent.style.display = 'none';
+                actionContainer.style.display = 'none';
+                mirrorSection.style.display = 'none';
+                aiSection.style.display = 'none';
+            }
+
+            function showPhotography() {
+                detailContent.style.display = 'block';
+                actionContainer.style.display = 'flex';
+                mirrorSection.style.display = 'none';
+                aiSection.style.display = 'none';
+            }
+
+            openMirror.onclick = () => {
+                hideAllDetail();
+                mirrorSection.style.display = 'block';
+                if (!scene) init3D();
+            };
+
+            openAI.onclick = () => {
+                hideAllDetail();
+                aiSection.style.display = 'block';
+                
+                const aiImg = document.getElementById('ai-synthesis-img');
+                const aiOverlay = document.getElementById('ai-synthesis-overlay');
+                
+                aiImg.src = data.aiFitting || data.image; 
+                
+                // Hyper-Fast Instant Synthesis
+                aiOverlay.style.display = 'none'; 
+            };
+
+            document.querySelectorAll('.close-alt-view').forEach(btn => {
+                btn.onclick = showPhotography;
+            });
+
+            function init3D() {
+                const container = document.getElementById('three-container');
+                scene = new THREE.Scene();
+                scene.background = new THREE.Color(0x0a192f);
+                
+                camera = new THREE.PerspectiveCamera(45, container.offsetWidth / container.offsetHeight, 0.1, 1000);
+                camera.position.z = 5;
+                camera.position.y = 1;
+
+                renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+                renderer.setSize(container.offsetWidth, container.offsetHeight);
+                renderer.setPixelRatio(window.devicePixelRatio);
+                container.appendChild(renderer.domElement);
+
+                // Lighting
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+                scene.add(ambientLight);
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                directionalLight.position.set(1, 2, 3);
+                scene.add(directionalLight);
+
+                // Skin Tones Map (Realistic HSL-based colors)
+                const skinMap = {
+                    'fair': 0xffdbac,
+                    'medium': 0xe0ac69,
+                    'olive': 0x8d5524,
+                    'tan': 0xc68642,
+                    'deep': 0x3c2020
+                };
+                const skinColor = skinMap[userProfile.skinTone] || 0xe0ac69;
+
+                // Build Realistic Mannequin
+                mannequin = new THREE.Group();
+                const skinMat = new THREE.MeshStandardMaterial({ 
+                    color: skinColor, 
+                    roughness: 0.7,
+                    metalness: 0.1
+                });
+
+                // Helper for Tapered Limbs
+                const createLimb = (top, bottom, height, x, y, z, rot = 0) => {
+                    const geo = new THREE.CylinderGeometry(top, bottom, height, 16);
+                    const mesh = new THREE.Mesh(geo, skinMat);
+                    mesh.position.set(x, y, z);
+                    mesh.rotation.z = rot;
+                    return mesh;
+                };
+
+                // Head & Neck
+                const head = new THREE.Mesh(new THREE.SphereGeometry(0.18, 32, 32), skinMat);
+                head.position.y = 1.75;
+                head.scale.y = 1.2; // Oval head
+                const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 0.15, 16), skinMat);
+                neck.position.y = 1.58;
+
+                // Torso Architecture
+                const chestWidth = userProfile.bodyType === 'athletic' ? 0.45 : (userProfile.bodyType === 'heavy' ? 0.55 : 0.35);
+                const waistWidth = userProfile.waist ? (userProfile.waist / 100) : 0.3;
+                
+                const upperTorso = new THREE.Mesh(new THREE.CylinderGeometry(chestWidth, waistWidth, 0.5, 32), skinMat);
+                upperTorso.position.y = 1.35;
+                
+                const lowerTorso = new THREE.Mesh(new THREE.CylinderGeometry(waistWidth, waistWidth + 0.05, 0.4, 32), skinMat);
+                lowerTorso.position.y = 0.95;
+
+                // Shoulders
+                const shoulderL = new THREE.Mesh(new THREE.SphereGeometry(0.09, 16, 16), skinMat);
+                shoulderL.position.set(-chestWidth, 1.5, 0);
+                const shoulderR = new THREE.Mesh(new THREE.SphereGeometry(0.09, 16, 16), skinMat);
+                shoulderR.position.set(chestWidth, 1.5, 0);
+
+                // Arms (Tapered)
+                const armL = createLimb(0.07, 0.05, 0.6, -chestWidth - 0.05, 1.2, 0, 0.1);
+                const armR = createLimb(0.07, 0.05, 0.6, chestWidth + 0.05, 1.2, 0, -0.1);
+
+                // Legs (Tapered)
+                const legL = createLimb(0.14, 0.08, 0.9, -0.18, 0.45, 0);
+                const legR = createLimb(0.14, 0.08, 0.9, 0.18, 0.45, 0);
+
+                mannequin.add(head, neck, upperTorso, lowerTorso, shoulderL, shoulderR, armL, armR, legL, legR);
+
+                // --- ATTIRE REPLICATION (The "Wearing" Logic) ---
+                const attireColors = {
+                    'wedding': { top: 0xffffff, bottom: 0x1a1a1a },
+                    'party': { top: 0x2c3e50, bottom: 0x000000 },
+                    'interview': { top: 0xfdfefe, bottom: 0x212f3d },
+                    'casual': { top: 0xecf0f1, bottom: 0x2e86c1 }
+                };
+                const theme = attireColors[data.occasion] || attireColors['casual'];
+
+                // 1. Shirt / Jacket
+                const shirtMat = new THREE.MeshStandardMaterial({ color: theme.top, roughness: 0.8 });
+                const shirtBody = new THREE.Mesh(new THREE.CylinderGeometry(chestWidth + 0.02, waistWidth + 0.02, 0.55, 32), shirtMat);
+                shirtBody.position.y = 1.35;
+                
+                const sleeveL = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.06, 0.4, 16), shirtMat);
+                sleeveL.position.set(-chestWidth - 0.05, 1.3, 0);
+                sleeveL.rotation.z = 0.1;
+                
+                const sleeveR = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.06, 0.4, 16), shirtMat);
+                sleeveR.position.set(chestWidth + 0.05, 1.3, 0);
+                sleeveR.rotation.z = -0.1;
+
+                mannequin.add(shirtBody, sleeveL, sleeveR);
+
+                // 2. Pants
+                const pantMat = new THREE.MeshStandardMaterial({ color: theme.bottom, roughness: 0.9 });
+                const pantWaist = new THREE.Mesh(new THREE.CylinderGeometry(waistWidth + 0.03, waistWidth + 0.06, 0.3, 32), pantMat);
+                pantWaist.position.y = 0.95;
+
+                const pantLegL = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.1, 0.85, 16), pantMat);
+                pantLegL.position.set(-0.18, 0.45, 0);
+                
+                const pantLegR = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.1, 0.85, 16), pantMat);
+                pantLegR.position.set(0.18, 0.45, 0);
+
+                mannequin.add(pantWaist, pantLegL, pantLegR);
+
+                // Global Scaling based on Profile
+                const hScale = (userProfile.height || 175) / 175;
+                mannequin.scale.y = hScale;
+                // Add subtle thickness based on body type
+                const thickness = userProfile.bodyType === 'heavy' ? 1.2 : (userProfile.bodyType === 'slim' ? 0.9 : 1);
+                mannequin.scale.x *= thickness;
+                mannequin.scale.z *= thickness;
+
+                scene.add(mannequin);
+
+                // Animation
+                function animate() {
+                    requestAnimationFrame(animate);
+                    mannequin.rotation.y += 0.008; // Slower, more elegant rotation
+                    renderer.render(scene, camera);
+                }
+                
+                setTimeout(() => {
+                    document.getElementById('loading-3d').style.display = 'none';
+                    animate();
+                }, 10);
+            }
         });
     </script>
 </body>
